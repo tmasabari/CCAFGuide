@@ -1,35 +1,51 @@
-# Scaling Pattern — Synchronous vs Batch
+# Scaling Pattern — Synchronous vs Message Batches API
 
-## Choose synchronous processing when
+## Decision rule
+
+Choose the execution path from the latency requirement first, then optimize cost.
+
+### Synchronous Messages API
+
+Use synchronous processing when:
 
 - the caller needs an immediate answer;
-- the result blocks a pre-merge or customer-facing workflow;
-- latency is part of the product experience;
-- the operation has a tight response-time requirement.
+- the result blocks a pre-merge/CI gate;
+- the result is customer-facing;
+- the workflow needs interactive multi-turn execution.
 
-## Choose Batch when
+### Message Batches API
+
+Use Batch when:
 
 - work is bulk, overnight, weekly, or otherwise latency-tolerant;
-- the workload can wait for asynchronous completion;
+- asynchronous completion is acceptable;
 - lower token cost is more important than immediate completion.
 
-Batch processing is not a drop-in replacement for a latency-sensitive synchronous path.
+The study material describes Batch as roughly 50% cheaper per token and allowing processing over an asynchronous window of up to 24 hours. Treat those properties as workload-planning characteristics, not as a promise of an exact completion time.
+
+Batch is not a drop-in replacement for a latency-sensitive synchronous path.
+
+## Important execution constraint
+
+Design the batch item as an independent request. Do not assume an interactive multi-turn tool loop can be carried out inside a single batch item. If a workflow fundamentally requires interactive turns, use the synchronous path or orchestrate the turns outside the batch boundary where supported.
 
 ## Safe rollout
 
 ```text
-Sample 100–500 items
-       ↓
+Sample 100–500 items synchronously
+              ↓
 Measure quality / failures / cost
-       ↓
-Tune prompt + schema + validator
-       ↓
+              ↓
+Tune prompt + examples + schema + validator
+              ↓
 Submit full batch
-       ↓
-Correlate with custom_id
-       ↓
-Retry only failed items
-       ↓
+              ↓
+Correlate each result with custom_id
+              ↓
+Validate each result
+              ↓
+Retry only failed custom_ids
+              ↓
 Escalate persistent failures
 ```
 
@@ -38,9 +54,9 @@ Use a stable `custom_id` for every request so results can be correlated with sou
 ## Hybrid architecture
 
 ```text
-                 ┌─ real-time / blocking ──→ Sync API
-Incoming work ───┤
-                 └─ bulk / latency tolerant → Batch API
+                         ┌─ real-time / blocking ──→ Sync API
+Incoming workload ───────┤
+                         └─ bulk / latency tolerant → Batch API
 ```
 
 For mixed SLAs, route each workload according to its latency requirement rather than forcing everything through one API mode.
