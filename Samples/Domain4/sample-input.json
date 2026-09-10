@@ -13,6 +13,8 @@
   "context": {
     "operation": "payment",
     "external_side_effect": true,
-    "idempotency_key": "not_present_in_change"
+    "idempotency_key": "not_present_in_change",
+    "gateway_retry_behavior": "The gateway client retries transient failures automatically.",
+    "source_evidence_rule": "Do not assume provider behavior beyond the supplied context."
   }
 }
