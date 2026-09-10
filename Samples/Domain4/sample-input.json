@@ -1,0 +1,18 @@
+{
+  "change_id": "PR-1042",
+  "files": [
+    {
+      "path": "Payments/ChargeService.cs",
+      "content": "public async Task Charge(string cardToken, decimal amount) { await gateway.ChargeAsync(cardToken, amount); }"
+    },
+    {
+      "path": "Payments/RetryPolicy.cs",
+      "content": "await RetryAsync(() => gateway.ChargeAsync(cardToken, amount));"
+    }
+  ],
+  "context": {
+    "operation": "payment",
+    "external_side_effect": true,
+    "idempotency_key": "not_present_in_change"
+  }
+}
