@@ -1,0 +1,13 @@
+diff --git a/src/payments/charge.ts b/src/payments/charge.ts
+index 1111111..2222222 100644
+--- a/src/payments/charge.ts
++++ b/src/payments/charge.ts
+@@ -8,6 +8,10 @@ export async function charge(order: Order) {
+-  return provider.charge(order.amount, order.currency);
++  try {
++    return await provider.charge(order.amount, order.currency);
++  } catch (err) {
++    console.log("payment failed", err);
++    throw err;
++  }
+ }
