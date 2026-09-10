@@ -12,17 +12,17 @@ The intentionally invalid sample demonstrates several failures:
 - `confidence=1.2` exceeds the allowed range.
 - `extra_reason` violates `additionalProperties: false`.
 
-## 2. Semantic validation
+## 2. Semantic and business validation
 
-A schema can prove that the output has the right shape; it cannot prove that the finding is true.
+A schema can constrain the output shape; it cannot by itself prove that a finding is true or that the business logic is correct.
 
-Validate business semantics separately:
+Validate separately in deterministic application code:
 
 - `REPORT` must have evidence grounded in the supplied input.
-- A severity must match the stated impact.
-- A suggested fix must address the finding rather than introduce unrelated changes.
-- Do not report style preferences as defects.
-- Do not fabricate missing evidence.
+- Severity must match the stated impact.
+- A suggested fix must address the finding.
+- Style preferences must not be promoted to defects.
+- Missing evidence must not be fabricated.
 
 ## 3. Specific retry feedback
 
@@ -37,29 +37,31 @@ Good:
 ```text
 Field: severity
 Produced value: urgent
-Error: value is not one of critical, high, medium, low, or null
-Expected correction: choose one allowed severity or null if the decision is SKIP.
+Error: value is outside the allowed enum.
+Expected correction: choose critical, high, medium, low, or null as permitted by the decision.
 ```
 
-For semantic failures, identify the exact claim that is unsupported and tell the model what evidence or decision rule must be reconsidered.
+For semantic failures, identify the exact unsupported claim and the rule/evidence that must be reconsidered.
 
 ## 4. Bounded retry loop
 
 ```text
 Generate
   ↓
-Schema validation
-  ├─ PASS → semantic validation
+Structural validation
+  ├─ PASS → semantic/business validation
   └─ FAIL → specific error feedback
                  ↓
                retry
                  ↓
-          max 2–3 attempts
+            max 2–3 attempts
                  ↓
-        unresolved → human review
+       unresolved / missing evidence
+                 ↓
+          human review escalation
 ```
 
-Do not retry indefinitely. Some failures are not recoverable by asking the same model again.
+Retry only when another generation has a reasonable chance of correcting the problem. If the source genuinely does not contain the information, prefer `null`, `other`, `unclear`, `SKIP`, or escalation according to the schema and business policy rather than retrying to force a value.
 
 ## 5. Escalation
 
@@ -70,4 +72,4 @@ Escalate when:
 - the taxonomy cannot represent the case safely;
 - the decision has material consequences and evidence remains ambiguous.
 
-`confidence` may help route borderline cases to human review, but should not be used as proof of correctness.
+`confidence` can help route borderline cases to human review, but a self-reported confidence score is not proof of correctness.
