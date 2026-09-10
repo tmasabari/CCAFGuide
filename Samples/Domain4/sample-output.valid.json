@@ -1,0 +1,10 @@
+{
+  "decision": "REPORT",
+  "severity": "high",
+  "category": "reliability",
+  "category_detail": null,
+  "finding": "The payment charge operation is retried without an idempotency mechanism, so a transient failure can cause the external charge to be executed more than once.",
+  "evidence": "RetryPolicy.cs invokes gateway.ChargeAsync(cardToken, amount) again, while the supplied context states that no idempotency key is present.",
+  "suggested_fix": "Use an idempotency key or an equivalent provider-supported deduplication mechanism for each logical payment operation.",
+  "confidence": 0.96
+}
