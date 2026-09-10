@@ -1,0 +1,9 @@
+{
+  "decision": "REPORT",
+  "severity": "urgent",
+  "category": "performance",
+  "finding": "This code is probably bad.",
+  "evidence": null,
+  "confidence": 1.2,
+  "extra_reason": "I think retries are always dangerous"
+}
